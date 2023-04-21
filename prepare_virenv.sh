@@ -6,14 +6,16 @@
 
 ## excute the script within your virtual environment
 
-## 1. on Ipython
-pip install jupyter
+# conda install python=3.8
 
+# ===========================================================
+
+
+# conda install python=3.8
+
+# conda install python=3.8
 ## 2. on Pytorch: match this for omegafold
 pip install torch==1.12.0+cu113 torchvision==0.13.0+cu113 torchaudio==0.12.0 --extra-index-url https://download.pytorch.org/whl/cu113
-
-## 3. omegafold
-pip install git+https://github.com/HeliXonProtein/OmegaFold.git
 
 
 ## 4. other packages
@@ -32,6 +34,8 @@ pip install accelerate
 pip install py3Dmol
 pip install tqdm
 pip install fsspec
+pip install Pillow
+
 
 
 ## 5. on Tensorflow
@@ -44,8 +48,18 @@ mkdir -p $CONDA_PREFIX/etc/conda/activate.d
 echo 'CUDNN_PATH=$(dirname $(python -c "import nvidia.cudnn;print(nvidia.cudnn.__file__)"))' >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
 echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/:$CUDNN_PATH/lib' >> $CONDA_PREFIX/etc/conda/activate.d/env_vars.sh
 # pip install --upgrade pip
-pip install tensorflow==2.12.*
+pip install tensorflow==2.12.0
 
+
+## 1. on Ipython
+pip install jupyter
+pip install ipython
+pip install ipykernel
+
+# install omegafold from the source
+## 3. omegafold
+conda install -c anaconda git
+pip install git+https://github.com/HeliXonProtein/OmegaFold.git@v1.1.0
 
 
 

@@ -57,3 +57,40 @@ setup(
     ],
     python_requires=">=3.9",
 )
+# # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# setup(
+#     name="ProteinDiffusionGenerator",
+#     version=__version__,
+    
+#     description="ProteinDiffusionGenerator Release Code",
+#     long_description=readme,
+#     long_description_content_type="text/markdown",
+#     url='https://github.com/Bo-Ni/ProtenDiffusionGenerator_pip',
+#     author='Bo Ni',
+#     author_email='boni.mechanics@gmail.com',
+    
+#     packages=find_packages(exclude=["tests", "tests.*"]),
+#     # entry_points={"console_scripts": ["omegafold=omegafold.__main__:main",],},
+#     install_requires=[
+#         "biopython",
+#         f"torch@{get_url()}",
+#         "nvidia-cudnn-cu11==8.6.0.163",
+#         "tensorflow==2.12.0",
+#         "OmegaFold @ git+https://github.com/HeliXonProtein/OmegaFold.git@v1.1.0",
+#         "numpy==1.22.4",
+#         "pandas==1.5.3",
+#         "einops",
+#         "einops-exts",
+#         "pytorch-warmup",
+#         "ema-pytorch",
+#         "accelerate",
+#         "py3Dmol",
+#         "pexpect",
+#         'scikit-learn',
+#         "ipython",
+#         "ipykernel",
+#         "pandas",
+#         "seaborn",
+#     ],
+#     python_requires=">=3.8",
+# )

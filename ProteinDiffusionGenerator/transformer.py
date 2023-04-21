@@ -2,6 +2,8 @@ from Bio.PDB import PDBParser
 from Bio.PDB.DSSP import DSSP
 from Bio.PDB import PDBList
 
+from contextlib import contextmanager, nullcontext
+from torch.nn.parallel import DistributedDataParallel
 import torch
 from torch.utils.data import DataLoader,Dataset
 from functools import partial, wraps
@@ -45,7 +47,7 @@ train_unet_number=1
 def params (model):
     pytorch_total_params = sum(p.numel() for p in model.parameters())
     pytorch_total_params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    
+    print ("Total model parameters: ", pytorch_total_params," trainable parameters: ", pytorch_total_params_trainable)
 
 ### Data loader/dataset generator
 class RegressionDataset(Dataset):
@@ -3791,6 +3793,9 @@ def sample_sequence (model,
                     inpaint_masks = inpaint_masks,
                     inpaint_resample_times = inpaint_resample_times,
                     init_images = init_images,device=device,
+                    #
+                    tokenizer_X=tokenizer_X,
+                    tokenizer_y=tokenizer_y,
                             
                             )
         result=torch.round(result*ynormfac)
@@ -3841,7 +3846,7 @@ def sample_sequence (model,
             tempname='temp'
             pdb_file=foldandsavePDB (sequence=y_data_reversed[0], 
                                                  filename_out=tempname, 
-                                                 num_cycle=num_cycle, flag=flag)
+                                                 num_cycle=num_cycle, flag=flag,prefix=prefix)
 
             out_nam_fasta=f'{prefix}{out_nam}_{flag}_{steps}.fasta'
 
@@ -3849,8 +3854,8 @@ def sample_sequence (model,
             
         
             out_nam=f'{prefix}{X_data_reversed[iisample]}_{flag}_{steps}.pdb'
-            # print('Debug 1: out: ', out_nam)
-            # print('Debug 2: in: ', pdb_file)
+            print('Debug 1: out: ', out_nam)
+            print('Debug 2: in: ', pdb_file)
             shutil.copy (pdb_file, out_nam) #source, dest
             # cmd_line = 'cp ' + pdb_file + ' ' + out_nam
             # print(cmd_line)
@@ -3904,11 +3909,15 @@ def sample_loop (model,
                 
                 if use_text_embedd:
                     result=model.sample (x= X_train_batch,stop_at_unet_number=train_unet_number ,
-                                         cond_scale=cond_scales[iisample], device=device, skip_steps=skip_steps)
+                                         cond_scale=cond_scales[iisample], device=device, skip_steps=skip_steps,
+                                         #
+                                         tokenizer_X=tokenizer_X,tokenizer_y=tokenizer_y,)
                 else:
                     result=model.sample (x= None, x_data_tokenized= X_train_batch,
                                          stop_at_unet_number=train_unet_number ,
-                                         cond_scale=cond_scales[iisample],device=device,skip_steps=skip_steps)
+                                         cond_scale=cond_scales[iisample],device=device,skip_steps=skip_steps,
+                                         #
+                                         tokenizer_X=tokenizer_X,tokenizer_y=tokenizer_y,)
                     
                 result=torch.round(result*ynormfac)
                 GT=torch.round (GT*ynormfac)
@@ -3961,7 +3970,8 @@ def sample_loop (model,
                         tempname='temp'
                         pdb_file=foldandsavePDB (sequence=y_data_reversed[samples], 
                                                              filename_out=tempname, 
-                                                             num_cycle=16, flag=flag)
+                                                             num_cycle=16, flag=flag,
+                                                             prefix=prefix)
                         #out_nam=f'{prefix}{out_nam}.pdb'
                         out_nam=f'{prefix}{X_data_reversed[samples]}.pdb'
                         print (f'Original PDB: {pdb_file} OUT: {out_nam}')
@@ -4149,7 +4159,7 @@ def train_loop (model,
             print (f"\n\n-------------------\nTime for epoch {e}={(time.time()-start)/60}\n-------------------")
 
 
-def foldandsavePDB (sequence, filename_out, num_cycle=16, flag=0):
+def foldandsavePDB (sequence, filename_out, num_cycle=16, flag=0,prefix=None):
     filename=f"{prefix}fasta_in_{flag}.fasta"
     print ("Writing FASTA file: ", filename)
     OUTFILE=f"{filename_out}_{flag}"
@@ -4158,7 +4168,11 @@ def foldandsavePDB (sequence, filename_out, num_cycle=16, flag=0):
         f.write (f'{sequence}')
         
     print (f"Now run OmegaFold.... on device={device}")    
-    !omegafold $filename $prefix --num_cycle $num_cycle --device=$device
+    # !omegafold $filename $prefix --num_cycle $num_cycle --device=$device
+    cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device={device}"
+    print(cmd_line)
+    print(os.popen(cmd_line).read())
+    
     print ("Done OmegaFold")
     
     # PDB_result=f"{prefix}{OUTFILE}.PDB"
@@ -4256,3 +4270,131 @@ def sample_sequence_normalized_Bfac (
     avg,_ = get_avg_Bfac (file=PDB[0])
 
     return PDB, avg
+
+# postprocessing
+# 
+def get_DSSP_result (fname):
+    pdb_list = [fname]
+
+    # parse structure
+    p = PDBParser()
+    for i in pdb_list:
+        structure = p.get_structure(i, fname)
+        # use only the first model
+        model = structure[0]
+        # calculate DSSP
+        dssp = DSSP(model, fname, file_type='PDB' )
+        # extract sequence and secondary structure from the DSSP tuple
+        sequence = ''
+        sec_structure = ''
+        for z in range(len(dssp)):
+            a_key = list(dssp.keys())[z]
+            sequence += dssp[a_key][1]
+            sec_structure += dssp[a_key][2]
+
+        #print(i)
+        #print(sequence)
+        #print(sec_structure)
+        #
+        # The DSSP codes for secondary structure used here are:
+        # =====     ====
+        # Code      Structure
+        # =====     ====
+        # H         Alpha helix (4-12)
+        # B         Isolated beta-bridge residue
+        # E         Strand
+        # G         3-10 helix
+        # I         Pi helix
+        # T         Turn
+        # S         Bend
+        # -         None
+        # =====     ====
+        #
+        
+        sec_structure = sec_structure.replace('-', '~')
+        sec_structure_3state=sec_structure
+
+        # if desired, convert DSSP's 8-state assignments into 3-state [C - coil, E - extended (beta-strand), H - helix]
+        sec_structure_3state = sec_structure_3state.replace('~', 'C')
+        sec_structure_3state = sec_structure_3state.replace('I', 'C')
+        sec_structure_3state = sec_structure_3state.replace('T', 'C')
+        sec_structure_3state = sec_structure_3state.replace('S', 'C')
+        sec_structure_3state = sec_structure_3state.replace('G', 'H')
+        sec_structure_3state = sec_structure_3state.replace('B', 'E')
+        return sec_structure,sec_structure_3state, sequence
+    
+    
+def string_diff (seq1, seq2):    
+    return   sum(1 for a, b in zip(seq1, seq2) if a != b) + abs(len(seq1) - len(seq2))
+
+def iterate_adaptive (model, seq='~~EEEEEETTEEEEEE~~',flag=999999, errorthreshold=0.8, maxiter=10,
+                     inpaint_images=None,
+                     inpaint_masks =None,cond_scales=1.,
+                     inpaint_resample_times=5,):
+    
+    
+    fnamelist=[]
+    sequencelist=[]
+    errorlist=[]
+    DSSPresultlist=[]
+    
+    error=1.
+    i=0
+    if inpaint_images != None:
+        inpaint_images = [inpaint_images]
+        print ("Use inpainting during iterative process...")
+        
+    while i<maxiter and error>errorthreshold:
+        
+        num_cycle=16
+        fname=sample_sequence (model,
+           x_data=[seq],
+             flag=f'{flag}_{i}',cond_scales=cond_scales,foldproteins=True,num_cycle=num_cycle,
+                               inpaint_images=inpaint_images,
+                               inpaint_masks=inpaint_masks,
+                               inpaint_resample_times=inpaint_resample_times,
+           )
+        
+        DSSPresult,_,sequence=get_DSSP_result(fname) 
+        error=string_diff (DSSPresult, seq)/len (seq)
+        
+        print (f"Iteration {i}: PDB file predicted: ", fname, "Error: ", error)
+
+        print (f"Cond: {seq}\nPred: {DSSPresult}")
+        
+        fnamelist.append(fname)
+        sequencelist.append(sequence)
+        errorlist.append(error)
+        DSSPresultlist.append(DSSPresult)       
+        
+        i=i+1
+        
+
+    imin=np.argmin (errorlist) #get smallest error 
+    
+    plt.plot (errorlist, 'o-r', label ='Error vs. iterations')
+    plt.ylim(0, 1)
+    plt.legend()
+    plt.show()
+    
+    sns.histplot(errorlist, bins = max (int (len(errorlist)/3 ),1) )
+    plt.title ('Error distribution')
+    plt.show()
+    
+    
+    ################
+    print ("####################################################")
+    print ("####################################################")
+    print ("####################################################")
+    print (f"FINAL RESULT at {imin}: ", fnamelist[imin], "Error: ", errorlist[imin])
+    print (f"Seq:  {sequencelist[imin]}")
+    print (f"Cond: {seq}\nPred: {DSSPresultlist[imin]}")
+    
+    tfname=fnamelist[imin][:-4]+'_FINAL.pdb'
+    shutil.copy (fnamelist[imin], tfname)
+    print (f"FINAL FILE NAME at {imin}: ", tfname)
+    print ("####################################################")
+    print ("####################################################")
+    print ("####################################################")
+
+    return fnamelist[imin], errorlist[imin], seq, DSSPresultlist[imin]
