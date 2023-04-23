@@ -61,5 +61,9 @@ pip install ipykernel
 conda install -c anaconda git
 pip install git+https://github.com/HeliXonProtein/OmegaFold.git@v1.1.0
 
+# DSSP: precompliled
+cp ./utility/mkdssp $CONDA_PREFIX/bin/mkdssp
+chmod u+x $CONDA_PREFIX/bin/mkdssp
+
 
 

@@ -26,6 +26,8 @@ import kornia.augmentation as K
 from random import random
 import shutil
 
+import seaborn as sns
+
 from tensorflow.keras.preprocessing import text, sequence
 
 import matplotlib.pyplot as plt
@@ -4170,6 +4172,11 @@ def foldandsavePDB (sequence, filename_out, num_cycle=16, flag=0,prefix=None):
     print (f"Now run OmegaFold.... on device={device}")    
     # !omegafold $filename $prefix --num_cycle $num_cycle --device=$device
     cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device={device}"
+    # for local station, cannot afford gpu. Try use OmegaFold with CPU
+    # +++++++++++++++++++++++++++
+    print (f"Now run OmegaFold.... on device=cpu")    
+    cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device=cpu"
+    
     print(cmd_line)
     print(os.popen(cmd_line).read())
     
@@ -4330,7 +4337,11 @@ def string_diff (seq1, seq2):
 def iterate_adaptive (model, seq='~~EEEEEETTEEEEEE~~',flag=999999, errorthreshold=0.8, maxiter=10,
                      inpaint_images=None,
                      inpaint_masks =None,cond_scales=1.,
-                     inpaint_resample_times=5,):
+                     inpaint_resample_times=5,
+                     # ++++++++++++++
+                     tokenizer_X=None,
+                     tokenizer_y=None,
+                     prefix=None):
     
     
     fnamelist=[]
@@ -4347,13 +4358,29 @@ def iterate_adaptive (model, seq='~~EEEEEETTEEEEEE~~',flag=999999, errorthreshol
     while i<maxiter and error>errorthreshold:
         
         num_cycle=16
-        fname=sample_sequence (model,
-           x_data=[seq],
-             flag=f'{flag}_{i}',cond_scales=cond_scales,foldproteins=True,num_cycle=num_cycle,
-                               inpaint_images=inpaint_images,
-                               inpaint_masks=inpaint_masks,
-                               inpaint_resample_times=inpaint_resample_times,
+        # fname=sample_sequence (model,
+        #    x_data=[seq],
+        #      flag=f'{flag}_{i}',cond_scales=cond_scales,foldproteins=True,num_cycle=num_cycle,
+        #                        inpaint_images=inpaint_images,
+        #                        inpaint_masks=inpaint_masks,
+        #                        inpaint_resample_times=inpaint_resample_times,
+        #    )
+        fname=sample_sequence (
+            model,
+            x_data=[seq],
+            flag=f'{flag}_{i}',
+            cond_scales=cond_scales,
+            foldproteins=True,
+            num_cycle=num_cycle,
+            inpaint_images=inpaint_images,
+            inpaint_masks=inpaint_masks,
+            inpaint_resample_times=inpaint_resample_times,
+            # +++++++++++++++++++++
+            tokenizer_X=tokenizer_X,
+            tokenizer_y=tokenizer_y,
+            prefix=prefix,
            )
+        
         
         DSSPresult,_,sequence=get_DSSP_result(fname) 
         error=string_diff (DSSPresult, seq)/len (seq)
