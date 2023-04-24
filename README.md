@@ -1,5 +1,5 @@
 # ProtenDiffusionGenerator_pip
-## Instruction:
+## Instruction for local installation:
 ## Step 1: Create the virtual environment
 ```bash
 conda create -n ProteinDiffusionGenerator python=3.9
