@@ -2,7 +2,7 @@
 ## Instruction for local installation:
 ## Step 1: Create the virtual environment with basic packages
 ```bash
-conda create -n ProteinDiffusionGenerator python=3.9 git jupyter dssp -c anaconda -c salilab
+conda create -n ProteinDiffusionGenerator python=3.9 git jupyter jupyterlab dssp -c anaconda -c conda-forge -c salilab
 conda activate ProteinDiffusionGenerator
 ```
 
