@@ -12,8 +12,9 @@ git clone https://github.com/Bo-Ni/ProtenDiffusionGenerator_pip.git
 cd ProtenDiffusionGenerator_pip
 bash prepare_virenv.sh
 ```
-Accept all the updates in the process
-Next, install the package
+Accept all the updates during the process
+
+Next, install the Protein Generator package
 ```bash
 pip install -e .
 ```
@@ -23,4 +24,4 @@ pip install -e .
 ```bash
 cd notebooks
 ```
-Test Model_B.ipynb for model B
+Test Model_B_Inference.ipynb for model B, Model_A_Inference.ipynb for model A.
