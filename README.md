@@ -2,16 +2,21 @@
 ## Instruction:
 ## Step 1: Create the virtual environment
 ```bash
-$ conda create -n ProteinDiffusionGenerator python=3.9
-$ conda activate ProteinDiffusionGenerator
+conda create -n ProteinDiffusionGenerator python=3.9
+conda activate ProteinDiffusionGenerator
 ```
 
 ## Step 2: Set up the environment and install the package
 ```bash
 cd ProtenDiffusionGenerator_pip
 bash prepare_virenv.sh
+```
+Accept all the updates in the process
+Next, install the package
+```bash
 pip install -e .
 ```
+
 
 ## Step 3: Conduct the inference
 ```bash
