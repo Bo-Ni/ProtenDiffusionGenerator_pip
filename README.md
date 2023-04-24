@@ -10,10 +10,10 @@ conda activate ProteinDiffusionGenerator
 Download the package.
 ```bash
 git clone https://github.com/Bo-Ni/ProtenDiffusionGenerator_pip.git
-cd ProtenDiffusionGenerator_pip
 ```
 Next, install the package locally.
 ```bash
+cd ProtenDiffusionGenerator_pip
 pip install -e .
 ```
 
