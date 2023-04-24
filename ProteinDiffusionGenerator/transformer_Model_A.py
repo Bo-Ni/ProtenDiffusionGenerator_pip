@@ -3815,10 +3815,10 @@ def foldandsavePDB (sequence, filename_out, num_cycle=16, flag=0,prefix=None):
     print ("Now run OmegaFold....")
     # !omegafold prefix --num_cycle device
     cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device={device}"
-    # for local station, cannot afford gpu. Try use OmegaFold with CPU
-    # +++++++++++++++++++++++++++
-    print (f"Now run OmegaFold.... on device=cpu")    
-    cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device=cpu"
+    # # for local station, cannot afford gpu. Try use OmegaFold with CPU
+    # # +++++++++++++++++++++++++++
+    # print (f"Now run OmegaFold.... on device=cpu")    
+    # cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device=cpu"
     
     print(cmd_line)
     print(os.popen(cmd_line).read())
