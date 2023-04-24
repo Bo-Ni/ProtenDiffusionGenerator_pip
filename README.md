@@ -1,27 +1,24 @@
 # ProtenDiffusionGenerator_pip
 ## Instruction for local installation:
-## Step 1: Create the virtual environment
+## Step 1: Create the virtual environment with basic packages
 ```bash
-conda create -n ProteinDiffusionGenerator python=3.9
+conda create -n ProteinDiffusionGenerator python=3.9 git jupyter dssp -c anaconda -c salilab
 conda activate ProteinDiffusionGenerator
 ```
 
-## Step 2: Set up the environment and install the package
+## Step 2: Install the ProteinDiffusionGenerator package
+Download the package.
 ```bash
 git clone https://github.com/Bo-Ni/ProtenDiffusionGenerator_pip.git
 cd ProtenDiffusionGenerator_pip
-bash prepare_virenv.sh
 ```
-Accept all the updates during the process
-
-Next, install the Protein Generator package
+Next, install the package locally.
 ```bash
 pip install -e .
 ```
 
-
 ## Step 3: Conduct the inference
 ```bash
-cd notebooks
+jupyter notebook
 ```
-Test Model_B_Inference.ipynb for model B, Model_A_Inference.ipynb for model A.
+Test model B using ./notebooks/Model_B_Inference.ipynb and model A using ./notebooks/Model_A_Inference.ipynb
