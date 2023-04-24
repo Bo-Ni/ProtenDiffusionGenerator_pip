@@ -36,6 +36,7 @@ import numpy as np
 # added as a quick fix
 device = torch.device("cuda:0" if torch.cuda.is_available() 
                                   else "cpu")
+
 # Load dataset
 # ynormfac=21.
 # Xnormfac=9.
@@ -4182,8 +4183,8 @@ def foldandsavePDB (sequence, filename_out, num_cycle=16, flag=0,prefix=None):
     cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device={device}"
     # for local station, cannot afford gpu. Try use OmegaFold with CPU
     # +++++++++++++++++++++++++++
-    print (f"Now run OmegaFold.... on device=cpu")    
-    cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device=cpu"
+    # print (f"Now run OmegaFold.... on device=cpu")    
+    # cmd_line=F"omegafold {filename} {prefix} --num_cycle {num_cycle} --device=cpu"
     
     print(cmd_line)
     print(os.popen(cmd_line).read())

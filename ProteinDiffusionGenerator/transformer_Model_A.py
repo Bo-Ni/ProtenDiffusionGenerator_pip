@@ -37,7 +37,7 @@ import numpy as np
 # added as a quick fix
 device = torch.device("cuda:0" if torch.cuda.is_available() 
                                   else "cpu")
-device = "cpu"
+# device = "cpu"
 # ======================================================
 # ynormfac=22.
 batch_size_=512
