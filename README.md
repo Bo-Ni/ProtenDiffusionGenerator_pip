@@ -8,6 +8,7 @@ conda activate ProteinDiffusionGenerator
 
 ## Step 2: Set up the environment and install the package
 ```bash
+git clone https://github.com/Bo-Ni/ProtenDiffusionGenerator_pip.git
 cd ProtenDiffusionGenerator_pip
 bash prepare_virenv.sh
 ```
